@@ -9,7 +9,7 @@
 #include <vector>
 
 // compile with e.g.
-// g++ -O2 -std=c++17 ninjalog2wctr.cpp -o ninjalog2wctr
+// g++ -O2 -Wall -std=c++17 ninja2wctr.cpp -o ninja2wctr
 //
 // usage: move into build directory that contains .ninja_log
 // run 'ninjalog2wctr'
@@ -114,12 +114,25 @@ auto processEventsToWallClockTimeResponsibilities(std::vector<Event> const& sort
 	return finishedTasks;
 }
 
+// Prints the top WCTR outputs, total time the output took, and output name. E.g. like this:
+//      0.594     19.004    32.0 whatever.cpp.o
 void printWallClockTimeResponsibilities(
-		std::vector<WallClockTimeResponsibility> const& wallClockTimeResponsibilities, int numLinesToPrint) {
-	auto numLines = std::min<size_t>(numLinesToPrint, wallClockTimeResponsibilities.size());
-	for (size_t i = 0; i < numLines; ++i) {
+		std::vector<WallClockTimeResponsibility> const& wallClockTimeResponsibilities,
+		std::unordered_map<std::string, StartStop> const& outputToStartStop,
+		size_t numLinesToPrint) {
+
+	if (numLinesToPrint == 0 || numLinesToPrint > wallClockTimeResponsibilities.size()) {
+		numLinesToPrint = wallClockTimeResponsibilities.size();
+	}
+
+	std::cout << "      WCTR  wallclock parallel output" << std::endl;
+	for (size_t i = 0; i < numLinesToPrint; ++i) {
 		auto const& wctr = wallClockTimeResponsibilities[i];
-		std::cout << std::fixed << std::setprecision(3) << std::setw(10) << wctr.time.count() << " " << wctr.output << std::endl;
+		auto it = outputToStartStop.find(wctr.output);
+		auto wallClockTime = std::chrono::duration<double>(it->second.stop - it->second.start);
+		auto parallelism = wallClockTime / wctr.time;
+		std::cout << std::fixed << std::setprecision(3) << std::setw(10) << wctr.time.count() << " " << std::setw(10)
+				  << wallClockTime.count() << " " << std::setprecision(1) << std::setw(8) << parallelism << " " << wctr.output << std::endl;
 	}
 }
 
@@ -134,5 +147,5 @@ auto main(int argc, char** argv) -> int {
 	auto sortedEvents = createdSortedEvents(outputToStartStop);
 	auto wallClockTimeResponsibilities = processEventsToWallClockTimeResponsibilities(sortedEvents);
 
-	printWallClockTimeResponsibilities(wallClockTimeResponsibilities, numLinesToPrint);
+	printWallClockTimeResponsibilities(wallClockTimeResponsibilities, outputToStartStop, numLinesToPrint);
 }
