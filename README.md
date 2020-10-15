@@ -27,8 +27,6 @@ See [Faster C++ builds, simplified: a new metric for time](https://devblogs.micr
      0.065      0.542      8.3 CMakeFiles/nb.dir/src/test/unit_to_s.cpp.o
 ```
 
-It can be seen hat the output `doctest.cpp.o` takes the most WCTR, also because not much is going on in parallel. Thankfully that file doesn't need to be rebuilt often.
-
-`example_random_number_generators.cpp.o` also takes 1.955 seconds of wall clock time, but since on average 13.8 processes could run in parallel the WCTR is much lower.
-
-The final result of the build was the binary `nb` which was the final linker step, so nothing was running in parallel to it.
+* Output `doctest.cpp.o` takes the most WCTR, also because not much is going on in parallel. Thankfully that file doesn't need to be rebuilt often.
+* `example_random_number_generators.cpp.o` takes 1.955 seconds of wall clock time, but since on average 13.8 tasks  ran in parallel the WCTR is much lower.
+* The result of the build was the binary `nb` which was the final linker step, so nothing was running in parallel to it.
